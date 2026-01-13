@@ -1,0 +1,142 @@
+[
+  {
+    "nombre": "Laptop HP Pavilion 15",
+    "descripcion": "Laptop con procesador Intel Core i5, 8GB RAM, 256GB SSD. Perfecta para trabajo y estudio.",
+    "precio": 599.99,
+    "imagen": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300",
+    "categoria": "Electrónica",
+    "stock": 15,
+    "enOferta": true,
+    "precioOriginal": 799.99
+  },
+  {
+    "nombre": "iPhone 14 Pro",
+    "descripcion": "Smartphone Apple con pantalla Super Retina XDR de 6.1 pulgadas, chip A16 Bionic.",
+    "precio": 1099.0,
+    "imagen": "https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?w=300",
+    "categoria": "Electrónica",
+    "stock": 8,
+    "enOferta": false
+  },
+  {
+    "nombre": "Camiseta Nike Deportiva",
+    "descripcion": "Camiseta de alto rendimiento con tecnología Dri-FIT para mantener la frescura.",
+    "precio": 29.99,
+    "imagen": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300",
+    "categoria": "Ropa",
+    "stock": 50,
+    "enOferta": false
+  },
+  {
+    "nombre": "Zapatillas Adidas Running",
+    "descripcion": "Zapatillas con tecnología Boost para máximo confort y retorno de energía.",
+    "precio": 89.99,
+    "imagen": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300",
+    "categoria": "Deportes",
+    "stock": 30,
+    "enOferta": true,
+    "precioOriginal": 119.99
+  },
+  {
+    "nombre": "Cafetera Nespresso",
+    "descripcion": "Cafetera de cápsulas automática con 19 bares de presión. Incluye espumador de leche.",
+    "precio": 149.99,
+    "imagen": "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=300",
+    "categoria": "Hogar",
+    "stock": 12,
+    "enOferta": false
+  },
+  {
+    "nombre": "Auriculares Sony WH-1000XM5",
+    "descripcion": "Auriculares inalámbricos con cancelación de ruido líder en la industria.",
+    "precio": 349.99,
+    "imagen": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300",
+    "categoria": "Electrónica",
+    "stock": 20,
+    "enOferta": false
+  },
+  {
+    "nombre": "Mochila The North Face",
+    "descripcion": "Mochila de 30L resistente al agua, ideal para senderismo y viajes.",
+    "precio": 79.99,
+    "imagen": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300",
+    "categoria": "Deportes",
+    "stock": 25,
+    "enOferta": true,
+    "precioOriginal": 99.99
+  },
+  {
+    "nombre": "Libro 'Atomic Habits'",
+    "descripcion": "Bestseller de James Clear sobre cómo crear buenos hábitos y romper los malos.",
+    "precio": 16.99,
+    "imagen": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300",
+    "categoria": "Libros",
+    "stock": 100,
+    "enOferta": false
+  },
+  {
+    "nombre": "Silla Gamer RGB",
+    "descripcion": "Silla ergonómica con iluminación RGB, reposabrazos ajustables y reclinable 180°.",
+    "precio": 249.99,
+    "imagen": "https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=300",
+    "categoria": "Hogar",
+    "stock": 7,
+    "enOferta": false
+  },
+  {
+    "nombre": "LEGO Star Wars Millennium Falcon",
+    "descripcion": "Set de construcción con 1351 piezas. Incluye 7 minifiguras.",
+    "precio": 159.99,
+    "imagen": "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=300",
+    "categoria": "Juguetes",
+    "stock": 5,
+    "enOferta": true,
+    "precioOriginal": 199.99
+  },
+  {
+    "nombre": "Batidora KitchenAid",
+    "descripcion": "Batidora de pie profesional de 5 cuartos con 10 velocidades.",
+    "precio": 299.99,
+    "imagen": "https://images.unsplash.com/photo-1578070181910-f1e514afdd08?w=300",
+    "categoria": "Hogar",
+    "stock": 10,
+    "enOferta": false
+  },
+  {
+    "nombre": "Reloj Smartwatch Samsung",
+    "descripcion": "Smartwatch con monitoreo de salud 24/7, GPS y batería de 40 horas.",
+    "precio": 279.99,
+    "imagen": "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=300",
+    "categoria": "Electrónica",
+    "stock": 18,
+    "enOferta": false
+  },
+  {
+    "nombre": "Yoga Mat Premium",
+    "descripcion": "Esterilla de yoga antideslizante de 6mm de grosor con correa de transporte.",
+    "precio": 34.99,
+    "imagen": "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=300",
+    "categoria": "Deportes",
+    "stock": 40,
+    "enOferta": false
+  },
+  {
+    "nombre": "Barbacoa Weber",
+    "descripcion": "Parrilla de carbón clásica de 22 pulgadas con termómetro integrado.",
+    "precio": 189.99,
+    "imagen": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300",
+    "categoria": "Hogar",
+    "stock": 6,
+    "enOferta": true,
+    "precioOriginal": 239.99
+  },
+  {
+    "nombre": "Puzzle 1000 Piezas Van Gogh",
+    "descripcion": "Puzzle de 'La Noche Estrellada' con acabado premium y piezas de encaje perfecto.",
+    "precio": 24.99,
+    "imagen": "https://images.unsplash.com/photo-1495954484750-af469f2f9be5?w=300",
+    "categoria": "Juguetes",
+    "stock": 35,
+    "enOferta": false
+  }
+]
