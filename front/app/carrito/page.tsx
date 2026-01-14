@@ -1,10 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import { useCart } from '@/lib/cart-context';
+import { useOrders } from '@/hooks/useOrders';
+import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MessageCircle } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, MessageCircle, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface FormData {
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  clientAddress: string;
+  clientCountry: string;
+  clientProvince: string;
+  additionalMessage: string;
+}
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat('es-AR', {
@@ -17,6 +33,74 @@ function formatPrice(price: number): string {
 
 export default function CarritoPage() {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
+  const { createOrder, loading: orderLoading } = useOrders();
+  const { toast } = useToast();
+  const [orderCreated, setOrderCreated] = useState(false);
+  const [createdOrderNumber, setCreatedOrderNumber] = useState('');
+  const [formData, setFormData] = useState<FormData>({
+    clientName: '',
+    clientEmail: '',
+    clientPhone: '',
+    clientAddress: '',
+    clientCountry: 'Argentina',
+    clientProvince: '',
+    additionalMessage: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.clientName.trim()) newErrors.clientName = 'El nombre es requerido';
+    if (!formData.clientEmail.trim()) newErrors.clientEmail = 'El email es requerido';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.clientEmail)) newErrors.clientEmail = 'Email inválido';
+    if (!formData.clientPhone.trim()) newErrors.clientPhone = 'El teléfono es requerido';
+    if (!formData.clientAddress.trim()) newErrors.clientAddress = 'La dirección es requerida';
+    if (!formData.clientProvince.trim()) newErrors.clientProvince = 'La provincia es requerida';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmitOrder = async () => {
+    if (!validateForm()) {
+      toast({
+        title: 'Error',
+        description: 'Por favor completa todos los campos requeridos',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const orderData = {
+        clientName: formData.clientName,
+        clientEmail: formData.clientEmail,
+        clientPhone: formData.clientPhone,
+        clientAddress: formData.clientAddress,
+        clientCountry: formData.clientCountry,
+        clientProvince: formData.clientProvince,
+        additionalMessage: formData.additionalMessage,
+        items: items,
+        totalAmount: totalPrice,
+      };
+
+      const order = await createOrder(orderData);
+      setCreatedOrderNumber(order.orderNumber);
+      setOrderCreated(true);
+
+      toast({
+        title: 'Éxito',
+        description: `Orden ${order.orderNumber} creada correctamente`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Error al crear la orden',
+        variant: 'destructive',
+      });
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -36,7 +120,7 @@ export default function CarritoPage() {
     );
   }
 
-  const whatsappMessage = items.map((item) => `- ${item.name} (${item.customization.size}, ${item.customization.color})${item.customization.personalized ? ` [${item.customization.name || ''} #${item.customization.number || ''}]` : ''} x${item.quantity}`).join('\n');
+  const whatsappMessage = items.map((item) => `- ${item.name} x${item.quantity} = ${formatPrice(item.price * item.quantity)}`).join('\n');
 
   const fullWhatsappMessage = `Hola MOK! Quiero hacer el siguiente pedido:\n\n${whatsappMessage}\n\nTotal: ${formatPrice(totalPrice)}`;
 
@@ -55,8 +139,8 @@ export default function CarritoPage() {
 
         {/* Cart Items */}
         <div className="mt-8 space-y-4">
-          {items.map((item, index) => (
-            <div key={`${item.id}-${item.customization.size}-${item.customization.color}-${index}`} className="flex gap-4 rounded-lg border border-border bg-card p-4">
+          {items.map((item) => (
+            <div key={item._id} className="flex gap-4 rounded-lg border border-border bg-card p-4">
               <div className="relative h-24 w-20 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
                 <Image src={item.image || '/placeholder.svg'} alt={item.name} fill className="object-cover" />
               </div>
@@ -64,27 +148,19 @@ export default function CarritoPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-semibold">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Talle: {item.customization.size} | Color: {item.customization.color}
-                    </p>
-                    {item.customization.personalized && (
-                      <p className="text-sm text-muted-foreground">
-                        Personalización: {item.customization.name || '-'} #{item.customization.number || '-'}
-                      </p>
-                    )}
-                    {item.customization.notes && <p className="text-xs text-muted-foreground italic">Notas: {item.customization.notes}</p>}
+                    <p className="text-sm text-muted-foreground">Precio: {formatPrice(item.price)}</p>
                   </div>
-                  <button onClick={() => removeItem(item.id, item.customization)} className="text-muted-foreground transition-colors hover:text-destructive" aria-label="Eliminar producto">
+                  <button onClick={() => removeItem(item._id || item.id)} className="text-muted-foreground transition-colors hover:text-destructive" aria-label="Eliminar producto">
                     <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-2">
                   <div className="flex items-center gap-2">
-                    <button onClick={() => updateQuantity(item.id, item.customization, item.quantity - 1)} disabled={item.quantity <= 1} className="flex h-8 w-8 items-center justify-center rounded-md border border-border transition-colors hover:bg-secondary disabled:opacity-50">
+                    <button onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)} className="flex h-8 w-8 items-center justify-center rounded-md border border-border transition-colors hover:bg-secondary">
                       <Minus className="h-4 w-4" />
                     </button>
                     <span className="w-8 text-center font-medium">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, item.customization, item.quantity + 1)} className="flex h-8 w-8 items-center justify-center rounded-md border border-border transition-colors hover:bg-secondary">
+                    <button onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)} disabled={item.quantity >= item.stock} className="flex h-8 w-8 items-center justify-center rounded-md border border-border transition-colors hover:bg-secondary disabled:opacity-50">
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
@@ -96,21 +172,193 @@ export default function CarritoPage() {
         </div>
 
         {/* Cart Summary */}
-        <div className="mt-8 rounded-lg border border-border bg-card p-6">
-          <div className="flex items-center justify-between text-lg font-bold">
-            <span>Total</span>
-            <span>{formatPrice(totalPrice)}</span>
+        <div className="mt-8 grid gap-8 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-8">
+            {/* Resumen de Carrito */}
+            <div className="rounded-lg border border-border bg-card p-6">
+              <h2 className="text-lg font-bold mb-4">Resumen del Pedido</h2>
+              <div className="space-y-2">
+                {items.map((item) => (
+                  <div key={item._id || item.id} className="flex justify-between text-sm">
+                    <span>
+                      {item.name} x{item.quantity}
+                    </span>
+                    <span>{formatPrice(item.price * item.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 border-t border-border pt-4 flex justify-between font-bold text-lg">
+                <span>Total</span>
+                <span>{formatPrice(totalPrice)}</span>
+              </div>
+            </div>
+
+            {/* Formulario de Cliente */}
+            <div className="rounded-lg border border-border bg-card p-6">
+              <h2 className="text-lg font-bold mb-4">Datos de Envío</h2>
+
+              {orderCreated ? (
+                <div className="rounded-lg bg-green-50 border border-green-200 p-6 text-center">
+                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold text-green-900 mb-2">¡Orden Creada Exitosamente!</h3>
+                  <p className="text-green-800 mb-4">Tu número de orden es:</p>
+                  <p className="text-2xl font-bold text-green-900 mb-4">{createdOrderNumber}</p>
+                  <p className="text-sm text-green-700 mb-6">Guarda este número para hacer seguimiento de tu pedido</p>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => {
+                        setOrderCreated(false);
+                        clearCart();
+                      }}
+                      className="flex-1"
+                    >
+                      Hacer otro pedido
+                    </Button>
+                    <Link href="/productos" className="flex-1">
+                      <Button variant="outline" className="w-full">
+                        Volver a productos
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSubmitOrder();
+                  }}
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Nombre Completo *</label>
+                      <Input
+                        value={formData.clientName}
+                        onChange={(e) => {
+                          setFormData({ ...formData, clientName: e.target.value });
+                          if (errors.clientName) setErrors({ ...errors, clientName: '' });
+                        }}
+                        placeholder="Tu nombre"
+                        className={errors.clientName ? 'border-red-500' : ''}
+                      />
+                      {errors.clientName && <p className="text-xs text-red-500 mt-1">{errors.clientName}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Email *</label>
+                      <Input
+                        type="email"
+                        value={formData.clientEmail}
+                        onChange={(e) => {
+                          setFormData({ ...formData, clientEmail: e.target.value });
+                          if (errors.clientEmail) setErrors({ ...errors, clientEmail: '' });
+                        }}
+                        placeholder="tu@email.com"
+                        className={errors.clientEmail ? 'border-red-500' : ''}
+                      />
+                      {errors.clientEmail && <p className="text-xs text-red-500 mt-1">{errors.clientEmail}</p>}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Teléfono *</label>
+                      <Input
+                        value={formData.clientPhone}
+                        onChange={(e) => {
+                          setFormData({ ...formData, clientPhone: e.target.value });
+                          if (errors.clientPhone) setErrors({ ...errors, clientPhone: '' });
+                        }}
+                        placeholder="+54 9 11 1234 5678"
+                        className={errors.clientPhone ? 'border-red-500' : ''}
+                      />
+                      {errors.clientPhone && <p className="text-xs text-red-500 mt-1">{errors.clientPhone}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Dirección *</label>
+                      <Input
+                        value={formData.clientAddress}
+                        onChange={(e) => {
+                          setFormData({ ...formData, clientAddress: e.target.value });
+                          if (errors.clientAddress) setErrors({ ...errors, clientAddress: '' });
+                        }}
+                        placeholder="Calle 123, Apto 4B"
+                        className={errors.clientAddress ? 'border-red-500' : ''}
+                      />
+                      {errors.clientAddress && <p className="text-xs text-red-500 mt-1">{errors.clientAddress}</p>}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">País *</label>
+                      <Select value={formData.clientCountry} onValueChange={(value) => setFormData({ ...formData, clientCountry: value })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Argentina">Argentina</SelectItem>
+                          <SelectItem value="Chile">Chile</SelectItem>
+                          <SelectItem value="Uruguay">Uruguay</SelectItem>
+                          <SelectItem value="Paraguay">Paraguay</SelectItem>
+                          <SelectItem value="Brasil">Brasil</SelectItem>
+                          <SelectItem value="Otro">Otro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Provincia/Estado *</label>
+                      <Input
+                        value={formData.clientProvince}
+                        onChange={(e) => {
+                          setFormData({ ...formData, clientProvince: e.target.value });
+                          if (errors.clientProvince) setErrors({ ...errors, clientProvince: '' });
+                        }}
+                        placeholder="Buenos Aires"
+                        className={errors.clientProvince ? 'border-red-500' : ''}
+                      />
+                      {errors.clientProvince && <p className="text-xs text-red-500 mt-1">{errors.clientProvince}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Mensaje Adicional (opcional)</label>
+                    <Textarea value={formData.additionalMessage} onChange={(e) => setFormData({ ...formData, additionalMessage: e.target.value })} placeholder="Ej: Enviar con cuidado, es un regalo..." maxLength={500} className="resize-none" rows={3} />
+                    <p className="text-xs text-muted-foreground mt-1">{formData.additionalMessage.length}/500</p>
+                  </div>
+
+                  <Button type="submit" disabled={orderLoading} className="w-full gap-2">
+                    {orderLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" />
+                        Crear Orden de Compra
+                      </>
+                    )}
+                  </Button>
+                </form>
+              )}
+            </div>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">* La personalización puede afectar el precio final. Confirmamos por WhatsApp.</p>
 
-          <Link href={`https://wa.me/5491112345678?text=${encodeURIComponent(fullWhatsappMessage)}`} target="_blank" rel="noopener noreferrer" className="mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-green-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-green-600">
-            <MessageCircle className="h-5 w-5" />
-            Finalizar pedido por WhatsApp
-          </Link>
-
-          <Button variant="outline" className="mt-3 w-full bg-transparent" onClick={clearCart}>
-            Vaciar carrito
-          </Button>
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="rounded-lg border border-border bg-card p-6 sticky top-4">
+              <h3 className="font-bold mb-4">Total del Pedido</h3>
+              <div className="text-3xl font-bold mb-6">{formatPrice(totalPrice)}</div>
+              <Button variant="outline" className="w-full mb-3" onClick={clearCart}>
+                Vaciar carrito
+              </Button>
+              <Link href="/productos" className="block">
+                <Button variant="outline" className="w-full">
+                  Seguir comprando
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>

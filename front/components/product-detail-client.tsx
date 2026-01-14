@@ -13,19 +13,15 @@ export function ProductDetailClient({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);
 
   const handleAddToCart = () => {
-    const itemId = (product.id ?? product._id ?? 1) as number | string;
+    const itemId = (product._id ?? product.id ?? 1) as number | string;
     addItem({
+      _id: itemId,
       id: itemId,
-      slug: product.slug || '',
-      name: product.name || 'Producto sin nombre',
-      price: product.price || product.precio || 0,
-      image: product.image || product.imagen || '/placeholder.svg',
+      name: product.nombre || product.name || 'Producto sin nombre',
+      price: product.precio || product.price || 0,
+      image: product.imagen || product.image || '/placeholder.svg',
+      stock: product.stock || 0,
       quantity: 1,
-      customization: {
-        size: '',
-        color: '',
-        personalized: false,
-      },
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);

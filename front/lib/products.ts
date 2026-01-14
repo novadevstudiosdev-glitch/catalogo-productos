@@ -22,6 +22,17 @@ export interface Product {
   updatedAt?: string;
 }
 
+export interface CreateProductInput {
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  precioOriginal?: number;
+  imagen: string;
+  categoria: string;
+  stock: number;
+  enOferta: boolean;
+}
+
 // Función para obtener todos los productos del backend
 export async function getProductsFromAPI(): Promise<Product[]> {
   try {
@@ -38,12 +49,16 @@ export async function getProductsFromAPI(): Promise<Product[]> {
     // Mapear los productos del backend al formato del frontend
     return (data.data || []).map((product: any) => ({
       _id: product._id,
-      id: Math.random(), // Generar ID temporal para compatibilidad
+      id: product._id, // Usar el mismo _id para consistencia
       slug: product.nombre?.toLowerCase().replace(/\s+/g, '-'),
+      nombre: product.nombre,
       name: product.nombre,
+      descripcion: product.descripcion,
       description: product.descripcion,
+      precio: product.precio,
       price: product.precio,
       priceFormatted: `$${product.precio?.toLocaleString('es-AR')}`,
+      imagen: product.imagen,
       image: product.imagen,
       categoria: product.categoria,
       stock: product.stock,
@@ -75,12 +90,16 @@ export async function getProductByIdFromAPI(id: string): Promise<Product | null>
 
     return {
       _id: product._id,
-      id: Math.random(),
+      id: product._id, // Usar el mismo _id para consistencia
       slug: product.nombre?.toLowerCase().replace(/\s+/g, '-'),
+      nombre: product.nombre,
       name: product.nombre,
+      descripcion: product.descripcion,
       description: product.descripcion,
+      precio: product.precio,
       price: product.precio,
       priceFormatted: `$${product.precio?.toLocaleString('es-AR')}`,
+      imagen: product.imagen,
       image: product.imagen,
       categoria: product.categoria,
       stock: product.stock,
@@ -99,3 +118,84 @@ export async function getProductByIdFromAPI(id: string): Promise<Product | null>
 // Productos de fallback (por si el backend no está disponible)
 // Productos de fallback vacío - ahora solo cargamos del backend
 export const products: Product[] = [];
+
+// CRUD Operations
+export async function createProduct(input: CreateProductInput): Promise<Product | null> {
+  try {
+    const response = await fetch(`${API_URL}/products`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al crear producto');
+    }
+
+    const data = await response.json();
+    return data.data || null;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    throw error;
+  }
+}
+
+export async function updateProduct(id: string, input: CreateProductInput): Promise<Product | null> {
+  try {
+    const response = await fetch(`${API_URL}/products/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al actualizar producto');
+    }
+
+    const data = await response.json();
+    return data.data || null;
+  } catch (error) {
+    console.error('Error updating product:', error);
+    throw error;
+  }
+}
+
+export async function deleteProduct(id: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/products/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al eliminar producto');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    throw error;
+  }
+}
+
+// Validación de URL de imagen
+export function isValidImageUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url) || url.includes('unsplash.com') || url.includes('images.');
+  } catch {
+    return false;
+  }
+}
+
+// Extraer categorías únicas
+export function getUniqueCategories(products: Product[]): string[] {
+  const categories = new Set<string>();
+  products.forEach((p) => {
+    if (p.categoria) categories.add(p.categoria);
+  });
+  return Array.from(categories).sort();
+}

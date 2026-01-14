@@ -1,31 +1,33 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 
 export interface CartItemCustomization {
-  size: string;
-  color: string;
-  personalized: boolean;
+  size?: string;
+  color?: string;
+  personalized?: boolean;
   name?: string;
   number?: string;
   notes?: string;
 }
 
 export interface CartItem {
+  _id?: string;
   id: number | string;
-  slug: string;
+  slug?: string;
   name: string;
   price: number;
   image: string;
   quantity: number;
-  customization: CartItemCustomization;
+  stock: number;
+  customization?: CartItemCustomization;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (id: number | string, customization: CartItemCustomization) => void;
-  updateQuantity: (id: number | string, customization: CartItemCustomization, quantity: number) => void;
+  addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
+  removeItem: (id: number | string) => void;
+  updateQuantity: (id: number | string, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -33,38 +35,93 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-function getItemKey(id: number | string, customization: CartItemCustomization): string {
-  return `${id}-${customization.size}-${customization.color}-${customization.personalized}-${customization.name || ''}-${customization.number || ''}`;
-}
+const CART_STORAGE_KEY = 'mok-store-cart';
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  const addItem = useCallback((newItem: CartItem) => {
+  // Cargar carrito del localStorage (solo cliente)
+  useEffect(() => {
+    // Este efecto solo se ejecuta en el cliente
+    if (typeof window !== 'undefined') {
+      try {
+        const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+        if (savedCart) {
+          const parsed = JSON.parse(savedCart);
+          setItems(Array.isArray(parsed) ? parsed : []);
+        }
+      } catch (error) {
+        console.error('Error loading cart from localStorage:', error);
+        setItems([]);
+      }
+    }
+    setIsHydrated(true);
+  }, []);
+
+  // Guardar carrito en localStorage cada que cambia
+  useEffect(() => {
+    if (isHydrated && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+      } catch (error) {
+        console.error('Error saving cart to localStorage:', error);
+      }
+    }
+  }, [items, isHydrated]);
+
+  const addItem = useCallback((newItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     setItems((prevItems) => {
-      const existingIndex = prevItems.findIndex((item) => getItemKey(item.id, item.customization) === getItemKey(newItem.id, newItem.customization));
+      const quantity = newItem.quantity || 1;
+      const existingIndex = prevItems.findIndex((item) => item._id === newItem._id);
 
       if (existingIndex > -1) {
         const updated = [...prevItems];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + newItem.quantity,
-        };
-        return updated;
+        const newQty = updated[existingIndex].quantity + quantity;
+        // Validar que no supere el stock
+        if (newQty <= updated[existingIndex].stock) {
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            quantity: newQty,
+          };
+          return updated;
+        }
+        return prevItems;
       }
 
-      return [...prevItems, newItem];
+      // Validar que la cantidad inicial no supere el stock
+      if (quantity <= newItem.stock) {
+        return [...prevItems, { ...newItem, quantity }];
+      }
+      return prevItems;
     });
   }, []);
 
-  const removeItem = useCallback((id: number, customization: CartItemCustomization) => {
-    setItems((prevItems) => prevItems.filter((item) => getItemKey(item.id, item.customization) !== getItemKey(id, customization)));
+  const removeItem = useCallback((id: number | string) => {
+    setItems((prevItems) => prevItems.filter((item) => item._id !== id));
   }, []);
 
-  const updateQuantity = useCallback((id: number, customization: CartItemCustomization, quantity: number) => {
-    if (quantity < 1) return;
-    setItems((prevItems) => prevItems.map((item) => (getItemKey(item.id, item.customization) === getItemKey(id, customization) ? { ...item, quantity } : item)));
-  }, []);
+  const updateQuantity = useCallback(
+    (id: number | string, quantity: number) => {
+      if (quantity < 1) {
+        removeItem(id);
+        return;
+      }
+      setItems((prevItems) =>
+        prevItems.map((item) => {
+          if (item._id === id) {
+            // Validar que no supere el stock
+            if (quantity <= item.stock) {
+              return { ...item, quantity };
+            }
+            return item;
+          }
+          return item;
+        })
+      );
+    },
+    [removeItem]
+  );
 
   const clearCart = useCallback(() => {
     setItems([]);
