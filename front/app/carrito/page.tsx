@@ -51,12 +51,42 @@ export default function CarritoPage() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.clientName.trim()) newErrors.clientName = 'El nombre es requerido';
-    if (!formData.clientEmail.trim()) newErrors.clientEmail = 'El email es requerido';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.clientEmail)) newErrors.clientEmail = 'Email inválido';
-    if (!formData.clientPhone.trim()) newErrors.clientPhone = 'El teléfono es requerido';
-    if (!formData.clientAddress.trim()) newErrors.clientAddress = 'La dirección es requerida';
-    if (!formData.clientProvince.trim()) newErrors.clientProvince = 'La provincia es requerida';
+    // Validar nombre: no vacío, sin números
+    if (!formData.clientName.trim()) {
+      newErrors.clientName = 'El nombre es requerido';
+    } else if (/\d/.test(formData.clientName)) {
+      newErrors.clientName = 'El nombre no puede contener números';
+    } else if (formData.clientName.trim().length < 3) {
+      newErrors.clientName = 'El nombre debe tener al menos 3 caracteres';
+    }
+
+    // Validar email
+    if (!formData.clientEmail.trim()) {
+      newErrors.clientEmail = 'El email es requerido';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.clientEmail)) {
+      newErrors.clientEmail = 'Email inválido';
+    }
+
+    // Validar teléfono: solo números, espacios, guiones, paréntesis y +
+    if (!formData.clientPhone.trim()) {
+      newErrors.clientPhone = 'El teléfono es requerido';
+    } else if (!/^[\d\s\+\-\(\)]+$/.test(formData.clientPhone)) {
+      newErrors.clientPhone = 'El teléfono solo puede contener números y caracteres válidos (+ - ( ))';
+    } else if (!/\d{10}/.test(formData.clientPhone.replace(/\D/g, ''))) {
+      newErrors.clientPhone = 'El teléfono debe tener al menos 10 dígitos';
+    }
+
+    // Validar dirección: no vacía, sin números al inicio
+    if (!formData.clientAddress.trim()) {
+      newErrors.clientAddress = 'La dirección es requerida';
+    } else if (formData.clientAddress.trim().length < 5) {
+      newErrors.clientAddress = 'La dirección debe tener al menos 5 caracteres';
+    }
+
+    // Validar provincia
+    if (!formData.clientProvince.trim()) {
+      newErrors.clientProvince = 'La provincia es requerida';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -235,7 +265,10 @@ export default function CarritoPage() {
                       <Input
                         value={formData.clientName}
                         onChange={(e) => {
-                          setFormData({ ...formData, clientName: e.target.value });
+                          const value = e.target.value;
+                          // Permitir solo letras, espacios y tildes
+                          const cleanValue = value.replace(/[^a-záéíóúñ\s]/gi, '');
+                          setFormData({ ...formData, clientName: cleanValue });
                           if (errors.clientName) setErrors({ ...errors, clientName: '' });
                         }}
                         placeholder="Tu nombre"
@@ -265,7 +298,10 @@ export default function CarritoPage() {
                       <Input
                         value={formData.clientPhone}
                         onChange={(e) => {
-                          setFormData({ ...formData, clientPhone: e.target.value });
+                          const value = e.target.value;
+                          // Permitir solo números, espacios, +, -, paréntesis
+                          const cleanValue = value.replace(/[^\d\s\+\-\(\)]/g, '');
+                          setFormData({ ...formData, clientPhone: cleanValue });
                           if (errors.clientPhone) setErrors({ ...errors, clientPhone: '' });
                         }}
                         placeholder="+54 9 11 1234 5678"

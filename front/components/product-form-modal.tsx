@@ -20,8 +20,12 @@ interface ProductFormModalProps {
   isLoading?: boolean;
 }
 
+interface FormDataWithDiscount extends CreateProductInput {
+  descuento?: number;
+}
+
 export function ProductFormModal({ open, onOpenChange, product, onSubmit, categories, isLoading = false }: ProductFormModalProps) {
-  const [formData, setFormData] = useState<CreateProductInput>({
+  const [formData, setFormData] = useState<FormDataWithDiscount>({
     nombre: '',
     descripcion: '',
     precio: 0,
@@ -30,6 +34,7 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
     categoria: '',
     stock: 0,
     enOferta: false,
+    descuento: 0,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,6 +42,12 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
 
   useEffect(() => {
     if (product) {
+      // Calcular descuento a partir de precioOriginal si existe
+      let descuento = 0;
+      if (product.precioOriginal && product.precio) {
+        descuento = Math.round(((product.precioOriginal - product.precio) / product.precioOriginal) * 100);
+      }
+
       setFormData({
         nombre: product.nombre || '',
         descripcion: product.descripcion || '',
@@ -46,6 +57,7 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
         categoria: product.categoria || '',
         stock: product.stock || 0,
         enOferta: product.enOferta || false,
+        descuento: descuento,
       });
       setImagePreview(product.imagen || '');
     } else {
@@ -58,6 +70,7 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
         categoria: '',
         stock: 0,
         enOferta: false,
+        descuento: 0,
       });
       setImagePreview('');
     }
@@ -97,8 +110,12 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
       newErrors.imagen = 'La URL de imagen no es válida';
     }
 
-    if (formData.precioOriginal !== undefined && formData.precioOriginal <= 0) {
-      newErrors.precioOriginal = 'El precio original debe ser mayor a 0';
+    if (formData.descuento && formData.descuento < 0) {
+      newErrors.descuento = 'El descuento no puede ser negativo';
+    }
+
+    if (formData.descuento && formData.descuento > 90) {
+      newErrors.descuento = 'El descuento máximo es 90%';
     }
 
     setErrors(newErrors);
@@ -111,12 +128,33 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
     setImagePreview(url);
   };
 
+  const handleDiscountChange = (value: number) => {
+    setFormData((prev) => {
+      const newFormData = { ...prev, descuento: value };
+
+      // Calcular precio final basado en precioOriginal y descuento
+      if (prev.precioOriginal && prev.precioOriginal > 0) {
+        const precioFinal = Math.round(prev.precioOriginal * (1 - value / 100) * 100) / 100;
+        newFormData.precio = precioFinal;
+        if (value > 0) {
+          newFormData.enOferta = true;
+        } else {
+          newFormData.enOferta = false;
+        }
+      }
+
+      return newFormData;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     try {
-      await onSubmit(formData);
+      // No enviar el descuento al backend, solo precioOriginal
+      const { descuento, ...dataToSubmit } = formData;
+      await onSubmit(dataToSubmit as CreateProductInput);
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -200,35 +238,33 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
             )}
           </div>
 
-          {/* Precio */}
+          {/* Precio Original */}
           <div>
-            <Label htmlFor="precio">Precio (ARS) *</Label>
+            <Label htmlFor="precioOriginal">Precio Original (ARS) *</Label>
             <Input
-              id="precio"
+              id="precioOriginal"
               type="number"
               placeholder="0.00"
               min="0"
               step="0.01"
-              value={formData.precio}
+              value={formData.precioOriginal || ''}
               onChange={(e) => {
-                setFormData((prev) => ({ ...prev, precio: parseFloat(e.target.value) || 0 }));
-                if (errors.precio) setErrors((prev) => ({ ...prev, precio: '' }));
+                const newPrecioOriginal = parseFloat(e.target.value) || 0;
+                setFormData((prev) => {
+                  const newFormData = { ...prev, precioOriginal: newPrecioOriginal };
+                  // Recalcular precio final si hay descuento
+                  if (prev.descuento && prev.descuento > 0 && newPrecioOriginal > 0) {
+                    newFormData.precio = Math.round(newPrecioOriginal * (1 - prev.descuento / 100) * 100) / 100;
+                  } else {
+                    newFormData.precio = newPrecioOriginal;
+                  }
+                  return newFormData;
+                });
+                if (errors.precioOriginal) setErrors((prev) => ({ ...prev, precioOriginal: '' }));
               }}
               disabled={isLoading}
-              className={errors.precio ? 'border-red-500' : ''}
+              className={errors.precioOriginal ? 'border-red-500' : ''}
             />
-            {errors.precio && (
-              <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-                <AlertCircle className="h-4 w-4" />
-                {errors.precio}
-              </p>
-            )}
-          </div>
-
-          {/* Precio Original (para ofertas) */}
-          <div>
-            <Label htmlFor="precioOriginal">Precio Original (opcional)</Label>
-            <Input id="precioOriginal" type="number" placeholder="0.00" min="0" step="0.01" value={formData.precioOriginal || ''} onChange={(e) => setFormData((prev) => ({ ...prev, precioOriginal: e.target.value ? parseFloat(e.target.value) : undefined }))} disabled={isLoading} className={errors.precioOriginal ? 'border-red-500' : ''} />
             {errors.precioOriginal && (
               <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
@@ -236,6 +272,87 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
               </p>
             )}
           </div>
+
+          {/* Descuento */}
+          <div>
+            <Label htmlFor="descuento">Descuento (%) - 0 a 90%</Label>
+            <div className="flex gap-2">
+              <Input
+                id="descuento"
+                type="number"
+                placeholder="0"
+                min="0"
+                max="90"
+                value={formData.descuento || ''}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value) || 0;
+                  if (value <= 90) {
+                    handleDiscountChange(value);
+                    if (errors.descuento) setErrors((prev) => ({ ...prev, descuento: '' }));
+                  } else {
+                    setErrors((prev) => ({ ...prev, descuento: 'El descuento máximo es 90%' }));
+                  }
+                }}
+                disabled={isLoading}
+                className={`${errors.descuento ? 'border-red-500' : ''}`}
+              />
+              <span className="flex items-center text-sm text-muted-foreground">%</span>
+            </div>
+            {errors.descuento && (
+              <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <AlertCircle className="h-4 w-4" />
+                {errors.descuento}
+              </p>
+            )}
+          </div>
+
+          {/* Precio Final */}
+          {formData.descuento && formData.descuento > 0 && (
+            <div className="rounded-md bg-green-50 border border-green-200 p-4">
+              <p className="text-sm font-medium text-green-900 mb-2">Resumen de Oferta</p>
+              <div className="space-y-1 text-sm text-green-800">
+                <p>
+                  Precio original: <span className="font-semibold">${formData.precioOriginal?.toLocaleString('es-AR')}</span>
+                </p>
+                <p>
+                  Descuento: <span className="font-semibold">{formData.descuento}%</span>
+                </p>
+                <p className="border-t border-green-200 pt-1 mt-1">
+                  <strong>Precio final: ${formData.precio.toLocaleString('es-AR')}</strong>
+                </p>
+                <p>
+                  Ahorro: <span className="font-semibold">${(formData.precioOriginal! - formData.precio).toLocaleString('es-AR')}</span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Precio (sin descuento) */}
+          {(!formData.descuento || formData.descuento === 0) && (
+            <div>
+              <Label htmlFor="precio">Precio (ARS) *</Label>
+              <Input
+                id="precio"
+                type="number"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                value={formData.precio}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, precio: parseFloat(e.target.value) || 0 }));
+                  if (errors.precio) setErrors((prev) => ({ ...prev, precio: '' }));
+                }}
+                disabled={isLoading}
+                className={errors.precio ? 'border-red-500' : ''}
+              />
+              {errors.precio && (
+                <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="h-4 w-4" />
+                  {errors.precio}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Stock */}
           <div>
@@ -278,13 +395,12 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
             )}
           </div>
 
-          {/* Oferta */}
-          <div className="flex items-center space-x-2">
-            <Checkbox id="enOferta" checked={formData.enOferta} onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, enOferta: checked === true }))} disabled={isLoading} />
-            <Label htmlFor="enOferta" className="cursor-pointer">
-              Este producto está en oferta
-            </Label>
-          </div>
+          {/* Estado de oferta (automático si hay descuento) */}
+          {formData.descuento && formData.descuento > 0 && (
+            <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-800">
+              ✓ Este producto está marcado como <strong>EN OFERTA</strong>
+            </div>
+          )}
 
           {/* Botones */}
           <div className="flex justify-end gap-3 pt-4">

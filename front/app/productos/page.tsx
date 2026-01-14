@@ -22,8 +22,10 @@ export default function ProductosPage() {
       return;
     }
 
+    const itemId = product._id || product.id || product.slug;
     addItem({
-      _id: product._id,
+      _id: itemId,
+      id: itemId,
       name: product.name || 'Producto',
       price: typeof product.price === 'string' ? parseFloat(product.price.replace('$', '').replace('.', '')) : product.price || 0,
       image: product.image || '/placeholder.svg',

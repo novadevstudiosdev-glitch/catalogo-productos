@@ -1,4 +1,5 @@
 import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 
 // Obtener todas las órdenes
 export const getAllOrders = async (req, res) => {
@@ -103,6 +104,29 @@ export const createOrder = async (req, res) => {
     const lastOrder = await Order.findOne().sort({ createdAt: -1 }).lean();
     const lastNumber = lastOrder && lastOrder.orderNumber ? parseInt(lastOrder.orderNumber.split('-')[1]) : 0;
     const orderNumber = `ORD-${String(lastNumber + 1).padStart(5, '0')}`;
+
+    // Restar stock de cada producto
+    for (const item of items) {
+      const productId = item._id || item.id;
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Producto con ID ${productId} no encontrado`,
+        });
+      }
+
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Stock insuficiente para ${product.nombre}. Stock disponible: ${product.stock}, Solicitado: ${item.quantity}`,
+        });
+      }
+
+      // Actualizar stock
+      await Product.findByIdAndUpdate(productId, { $inc: { stock: -item.quantity } }, { new: true });
+    }
 
     // Crear orden
     const newOrder = new Order({
