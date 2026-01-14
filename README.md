@@ -16,6 +16,7 @@ Una tienda online moderna y minimalista construida con **Next.js** y **Node.js**
 ## 🚀 Stack Tecnológico
 
 ### Frontend
+
 - **Next.js 14+** - React framework moderno
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling utility-first
@@ -23,6 +24,7 @@ Una tienda online moderna y minimalista construida con **Next.js** y **Node.js**
 - **Lucide Icons** - Iconografía moderna
 
 ### Backend
+
 - **Node.js + Express** - Servidor robusto
 - **MongoDB** - Base de datos NoSQL
 - **Mongoose** - ODM para MongoDB
@@ -31,7 +33,8 @@ Una tienda online moderna y minimalista construida con **Next.js** y **Node.js**
 ## 📦 Instalación
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - MongoDB local o Atlas
 - npm o pnpm
 
@@ -107,6 +110,7 @@ catalogo-productos/
 ## 🔧 Variables de Entorno
 
 ### Backend (.env)
+
 ```
 MONGO_URI=mongodb://localhost:27017/mok-store
 PORT=5000
@@ -114,6 +118,7 @@ NODE_ENV=development
 ```
 
 ### Frontend (.env.local)
+
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
@@ -121,6 +126,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ## 🎯 Características Principales
 
 ### Gestión de Productos
+
 - Crear, editar y eliminar productos
 - Sistema de descuentos con cálculo automático
 - Control de stock con validación
@@ -128,6 +134,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 - Imágenes optimizadas (quality 95)
 
 ### Carrito de Compras
+
 - Agregar/remover productos
 - Actualizar cantidades
 - Persistencia con localStorage
@@ -135,6 +142,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 - Cálculo automático de totales
 
 ### Admin Panel
+
 - Dashboard de productos con filtros
 - Gestión completa del catálogo
 - Visualización de órdenes
@@ -142,6 +150,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 - Estadísticas de stock
 
 ### Validaciones
+
 - **Formularios**: Nombre, email, teléfono, dirección
 - **Productos**: Stock, precios, descuentos
 - **Órdenes**: Validación en tiempo real
@@ -167,6 +176,7 @@ Taupe:           #987977 (Accent 2)
 ## 📝 Scripts Disponibles
 
 ### Backend
+
 ```bash
 npm run start    # Iniciar servidor
 npm run seed     # Cargar datos de ejemplo
@@ -174,6 +184,7 @@ npm run dev      # Modo desarrollo con nodemon
 ```
 
 ### Frontend
+
 ```bash
 npm run dev      # Desarrollo
 npm run build    # Build para producción
@@ -183,6 +194,7 @@ npm run start    # Iniciar servidor de producción
 ## 🔌 API Endpoints
 
 ### Products
+
 - `GET /api/products` - Obtener todos los productos
 - `GET /api/products/:id` - Obtener producto por ID
 - `POST /api/products` - Crear producto
@@ -190,6 +202,7 @@ npm run start    # Iniciar servidor de producción
 - `DELETE /api/products/:id` - Eliminar producto
 
 ### Orders
+
 - `GET /api/orders` - Obtener todas las órdenes
 - `POST /api/orders` - Crear orden
 - `PUT /api/orders/:id` - Actualizar estado de orden
@@ -210,12 +223,14 @@ npm run start    # Iniciar servidor de producción
 ## 🚀 Deploy
 
 ### Vercel (Frontend)
+
 ```bash
 npm install -g vercel
 vercel
 ```
 
 ### Heroku (Backend)
+
 ```bash
 heroku create your-app-name
 heroku config:set MONGO_URI=your_mongodb_uri
