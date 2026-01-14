@@ -61,7 +61,7 @@ export function ProductCard({ product, onAddToCart }: { product: Product; onAddT
       <style>{cartAnimationStyles}</style>
       <div className="group overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-lg">
         <div className="relative aspect-[3/4] overflow-hidden bg-secondary">
-          <Image src={product.image || '/placeholder.svg'} alt={product.name || 'Producto'} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+          <Image src={product.image || '/placeholder.svg'} alt={product.name || 'Producto'} fill className="object-cover transition-transform duration-300 group-hover:scale-105" quality={95} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" priority={false} />
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">

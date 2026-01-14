@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/lib/cart-context';
 import { getUniqueCategories, type Product, type CreateProductInput } from '@/lib/products';
 import { ProductFormModal } from './product-form-modal';
-import { Plus, Edit2, Trash2, ShoppingCart, AlertCircle, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, ShoppingCart, AlertCircle, Loader2, CheckCircle2, Trash } from 'lucide-react';
 
 interface ProductsAdminProps {
   products: Product[];
@@ -83,16 +83,19 @@ export function ProductsAdmin({ products, onCreateProduct, onUpdateProduct, onDe
     if (!deleteConfirm) return;
     try {
       setSubmitting(true);
+      const deletedProduct = products.find((p) => p._id === deleteConfirm);
       await onDeleteProduct(deleteConfirm);
       toast({
-        title: 'Éxito',
-        description: 'Producto eliminado correctamente',
+        title: '✓ Producto eliminado',
+        description: `"${deletedProduct?.nombre || 'Producto'}" fue eliminado correctamente`,
+        duration: 3000,
       });
     } catch (error) {
       toast({
-        title: 'Error',
+        title: 'Error al eliminar',
         description: error instanceof Error ? error.message : 'Error al eliminar el producto',
         variant: 'destructive',
+        duration: 3000,
       });
     } finally {
       setSubmitting(false);
