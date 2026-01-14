@@ -64,17 +64,60 @@ export function ProductDetailClient({ product }: { product: Product }) {
 
             {/* Add to Cart Button */}
             <div className="mt-8 flex gap-4">
-              <Button size="lg" onClick={handleAddToCart} className="flex-1">
-                <ShoppingCart className="mr-2 h-5 w-5" />
+              <Button size="lg" onClick={handleAddToCart} className="flex-1 gap-2">
+                <ShoppingCart className="h-5 w-5" />
                 {added ? (
                   <>
-                    <Check className="mr-2 h-5 w-5" />
-                    Agregado
+                    <Check className="h-5 w-5" />
+                    <span>Agregado al carrito</span>
                   </>
                 ) : (
                   'Agregar al carrito'
                 )}
               </Button>
+            </div>
+
+            {/* Product Information Table */}
+            <div className="mt-8 rounded-lg border border-border bg-card p-4">
+              <h3 className="mb-4 text-lg font-semibold">Información del Producto</h3>
+              <div className="space-y-3">
+                {product.nombre && (
+                  <div className="flex justify-between items-start border-b border-border pb-3">
+                    <span className="font-medium text-muted-foreground">Nombre:</span>
+                    <span className="font-semibold text-right">{product.nombre}</span>
+                  </div>
+                )}
+                {product.precio && (
+                  <div className="flex justify-between items-start border-b border-border pb-3">
+                    <span className="font-medium text-muted-foreground">Precio:</span>
+                    <span className="font-semibold">${product.precio.toLocaleString('es-AR')}</span>
+                  </div>
+                )}
+                {product.precioOriginal && product.enOferta && (
+                  <div className="flex justify-between items-start border-b border-border pb-3">
+                    <span className="font-medium text-muted-foreground">Precio Original:</span>
+                    <span className="font-semibold line-through text-muted-foreground">${product.precioOriginal.toLocaleString('es-AR')}</span>
+                  </div>
+                )}
+                {product.stock !== undefined && (
+                  <div className="flex justify-between items-start border-b border-border pb-3">
+                    <span className="font-medium text-muted-foreground">Stock:</span>
+                    <span className={`font-semibold ${product.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>{product.stock > 0 ? `${product.stock} unidades disponibles` : 'Sin stock'}</span>
+                  </div>
+                )}
+                {product.categria && (
+                  <div className="flex justify-between items-start border-b border-border pb-3">
+                    <span className="font-medium text-muted-foreground">Categoría:</span>
+                    <span className="font-semibold">{product.categria}</span>
+                  </div>
+                )}
+                {product.enOferta && (
+                  <div className="flex justify-between items-start">
+                    <span className="font-medium text-muted-foreground">Estado:</span>
+                    <span className="font-semibold text-[#986459]">En Oferta</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
