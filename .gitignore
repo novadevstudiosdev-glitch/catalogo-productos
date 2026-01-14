@@ -51,3 +51,9 @@ logs/
 
 # --- VERCEL ---
 .vercel
+
+*.rar
+*.zip
+*.7z
+*.tar
+*.gz
