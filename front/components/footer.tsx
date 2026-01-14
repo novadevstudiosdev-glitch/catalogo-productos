@@ -1,5 +1,5 @@
-import Link from "next/link"
-import { MessageCircle } from "lucide-react"
+import Link from 'next/link';
+import { MessageCircle } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -8,22 +8,15 @@ export function Footer() {
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="font-bold">MOK</span>
-            <span className="text-sm text-muted-foreground">Deportes</span>
+            <span className="text-sm text-muted-foreground">Store</span>
           </div>
-          <Link
-            href="https://wa.me/5491112345678?text=Hola%20MOK!%20Quiero%20consultar%20por%20una%20camiseta"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-green-500"
-          >
+          <Link href="https://wa.me/5491112345678?text=Hola%20MOK%20Store!%20Tengo%20una%20consulta" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-green-500">
             <MessageCircle className="h-4 w-4" />
-            Escribinos por WhatsApp
+            Contactanos por WhatsApp
           </Link>
         </div>
-        <p className="mt-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} MOK Deportes. Todos los derechos reservados.
-        </p>
+        <p className="mt-4 text-center text-sm text-muted-foreground">© {new Date().getFullYear()} MOK Store. Todos los derechos reservados.</p>
       </div>
     </footer>
-  )
+  );
 }
