@@ -179,16 +179,6 @@ ${order.notes ? `NOTAS: ${order.notes}` : ''}
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
               Buscar
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setSearchEmail('');
-                loadAllOrders();
-              }}
-            >
-              Limpiar
-            </Button>
           </div>
         </form>
 

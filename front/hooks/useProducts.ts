@@ -30,12 +30,18 @@ export function useProducts(): UseProductsReturn {
     }
   }, []);
 
-  // Cargar productos automáticamente cuando el hook se monta
+  // Cargar productos automáticamente cuando el hook se monta y refrescar por evento
   useEffect(() => {
     if (!hasInitialized) {
       refetch();
       setHasInitialized(true);
     }
+    // Listener para refrescar productos cuando se actualiza
+    const handler = () => refetch();
+    window.addEventListener('products-updated', handler);
+    return () => {
+      window.removeEventListener('products-updated', handler);
+    };
   }, []);
 
   const createProductAsync = useCallback(async (input: CreateProductInput) => {

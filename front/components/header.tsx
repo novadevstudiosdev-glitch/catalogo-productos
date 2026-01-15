@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 
 export function Header() {
   const { totalItems } = useCart();
-  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -31,25 +30,11 @@ export function Header() {
             Contacto
           </Link>
 
-          {/* Admin Dropdown */}
-          <div className="relative">
-            <button onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)} className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-              <Settings className="h-4 w-4" />
-              Admin
-            </button>
-            {isAdminMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-md border border-border bg-card shadow-lg">
-                <Link href="/admin" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary first:rounded-t-md flex items-center gap-2" onClick={() => setIsAdminMenuOpen(false)}>
-                  <Package className="h-4 w-4" />
-                  Gestor de Productos
-                </Link>
-                <Link href="/admin/orders" className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary last:rounded-b-md flex items-center gap-2" onClick={() => setIsAdminMenuOpen(false)}>
-                  <Search className="h-4 w-4" />
-                  Búsqueda de Órdenes
-                </Link>
-              </div>
-            )}
-          </div>
+          {/* Admin Link */}
+          <Link href="/admin" className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            <Settings className="h-4 w-4" />
+            Admin
+          </Link>
 
           <Link href="/carrito" className="relative flex items-center text-muted-foreground transition-colors hover:text-foreground">
             <ShoppingCart className="h-5 w-5" />
@@ -83,20 +68,10 @@ export function Header() {
               Contacto
             </Link>
             <div className="border-t border-border">
-              <button onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)} className="w-full px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary flex items-center gap-2">
+              <Link href="/admin" className="block px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                 <Settings className="h-4 w-4" />
                 Admin
-              </button>
-              {isAdminMenuOpen && (
-                <div className="bg-secondary">
-                  <Link href="/admin" className="block px-8 py-2 text-sm text-muted-foreground hover:text-foreground" onClick={() => setIsMobileMenuOpen(false)}>
-                    Gestor de Productos
-                  </Link>
-                  <Link href="/admin/orders" className="block px-8 py-2 text-sm text-muted-foreground hover:text-foreground" onClick={() => setIsMobileMenuOpen(false)}>
-                    Búsqueda de Órdenes
-                  </Link>
-                </div>
-              )}
+              </Link>
             </div>
           </nav>
         </div>

@@ -62,8 +62,23 @@ export function ProductsAdmin({ products, onCreateProduct, onUpdateProduct, onDe
     if (!selectedProduct?._id) return;
     try {
       setSubmitting(true);
-      await onUpdateProduct(selectedProduct._id, data);
+      // Conversión de tipos y mapeo de campos
+      const payload: CreateProductInput = {
+        nombre: String(data.nombre ?? data.name ?? selectedProduct.nombre ?? ''),
+        descripcion: String(data.descripcion ?? data.description ?? selectedProduct.descripcion ?? ''),
+        precio: Number(data.precio ?? data.price ?? selectedProduct.precio ?? 0),
+        precioOriginal: data.precioOriginal !== undefined ? Number(data.precioOriginal) : data.originalPrice !== undefined ? Number(data.originalPrice) : selectedProduct.precioOriginal ?? undefined,
+        imagen: String(data.imagen ?? data.image ?? selectedProduct.imagen ?? ''),
+        categoria: String(data.categoria ?? data.category ?? selectedProduct.categoria ?? ''),
+        stock: Number(data.stock ?? selectedProduct.stock ?? 0),
+        enOferta: Boolean(data.enOferta ?? data.isOnSale ?? selectedProduct.enOferta ?? false),
+      };
+      await onUpdateProduct(selectedProduct._id, payload);
       setSelectedProduct(null);
+      // Refrescar la lista de productos si existe función refetch
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new Event('products-updated'));
+      }
       toast({
         title: 'Éxito',
         description: 'Producto actualizado correctamente',

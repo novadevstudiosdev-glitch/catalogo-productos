@@ -25,6 +25,15 @@ interface FormDataWithDiscount extends CreateProductInput {
 }
 
 export function ProductFormModal({ open, onOpenChange, product, onSubmit, categories, isLoading = false }: ProductFormModalProps) {
+  const CATEGORIAS_VALIDAS = [
+    { value: 'Electrónica', label: 'Electrónica' },
+    { value: 'Ropa', label: 'Ropa' },
+    { value: 'Hogar', label: 'Hogar' },
+    { value: 'Deportes', label: 'Deportes' },
+    { value: 'Juguetes', label: 'Juguetes' },
+    { value: 'Libros', label: 'Libros' },
+    { value: 'Otros', label: 'Otros' },
+  ];
   const [formData, setFormData] = useState<FormDataWithDiscount>({
     nombre: '',
     descripcion: '',
@@ -43,23 +52,25 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
   useEffect(() => {
     if (product) {
       // Calcular descuento a partir de precioOriginal si existe
+      let precio = product.precio ?? product.price ?? 0;
+      let precioOriginal = product.precioOriginal ?? product.originalPrice;
       let descuento = 0;
-      if (product.precioOriginal && product.precio) {
-        descuento = Math.round(((product.precioOriginal - product.precio) / product.precioOriginal) * 100);
+      if (precioOriginal && precio) {
+        descuento = Math.round(((precioOriginal - precio) / precioOriginal) * 100);
       }
 
       setFormData({
-        nombre: product.nombre || '',
-        descripcion: product.descripcion || '',
-        precio: product.precio || 0,
-        precioOriginal: product.precioOriginal,
-        imagen: product.imagen || '',
-        categoria: product.categoria || '',
-        stock: product.stock || 0,
-        enOferta: product.enOferta || false,
+        nombre: product.nombre || product.name || '',
+        descripcion: product.descripcion || product.description || '',
+        precio,
+        precioOriginal,
+        imagen: product.imagen || product.image || '',
+        categoria: product.categoria || product.category || '',
+        stock: product.stock ?? 0,
+        enOferta: product.enOferta ?? product.isOnSale ?? false,
         descuento: descuento,
       });
-      setImagePreview(product.imagen || '');
+      setImagePreview(product.imagen || product.image || '');
     } else {
       setFormData({
         nombre: '',
@@ -223,9 +234,9 @@ export function ProductFormModal({ open, onOpenChange, product, onSubmit, catego
                 <SelectValue placeholder="Selecciona una categoría" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
+                {CATEGORIAS_VALIDAS.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
                   </SelectItem>
                 ))}
               </SelectContent>
