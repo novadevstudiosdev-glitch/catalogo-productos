@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 
 interface FormData {
   clientName: string;
@@ -47,6 +48,7 @@ export default function CarritoPage() {
     additionalMessage: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [openConfirm, setOpenConfirm] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -385,7 +387,7 @@ export default function CarritoPage() {
             <div className="rounded-lg border border-border bg-card p-6 sticky top-4">
               <h3 className="font-bold mb-4">Total del Pedido</h3>
               <div className="text-3xl font-bold mb-6">{formatPrice(totalPrice)}</div>
-              <Button variant="outline" className="w-full mb-3" onClick={clearCart}>
+              <Button variant="outline" className="w-full mb-3" onClick={() => setOpenConfirm(true)}>
                 Vaciar carrito
               </Button>
               <Link href="/productos" className="block">
@@ -397,6 +399,27 @@ export default function CarritoPage() {
           </div>
         </div>
       </div>
+
+      {/* Confirmación Vaciar Carrito */}
+      <AlertDialog open={openConfirm} onOpenChange={setOpenConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Vaciar carrito?</AlertDialogTitle>
+            <AlertDialogDescription>¿Estás seguro que deseas vaciar el carrito? Esta acción no se puede deshacer.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                clearCart();
+                setOpenConfirm(false);
+              }}
+            >
+              Vaciar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
